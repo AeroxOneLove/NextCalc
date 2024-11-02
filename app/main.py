@@ -1,17 +1,19 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.schemas.operation_schema import OperationSchema
-from app.services.calculate_service import CalculateService
-from app.services.operation_service import OperationService
-
-app = FastAPI()
+from app.routers import routers
 
 
-@app.post("/caculate", response_model=float)
-async def caculate(expression: str):
-    return CalculateService().calculate(expression)
+def create_app():
+    app = FastAPI()
 
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.include_router(routers)
 
-@app.get("/operations", response_model=OperationSchema)
-async def operations():
-    return OperationService().get_all_operations()
+    return app
