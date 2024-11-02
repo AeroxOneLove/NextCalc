@@ -1,4 +1,4 @@
-from sympy import SympifyError, nan, sympify
+from sympy import SympifyError, nan, sympify, zoo
 
 from app.exceptions.calculate_exceptions import BadRequestError
 
@@ -6,20 +6,11 @@ from app.exceptions.calculate_exceptions import BadRequestError
 class CalculateService:
     def calculate(self, expression: str) -> float:
         try:
-            if expression.count("=") >= 1:
-                raise BadRequestError(f"Некоректный ввод ({expression})")
+            if "=" in expression:
+                raise BadRequestError(f"Некорректный ввод ({expression})")
             result = sympify(expression)
-            if result == nan:
-                raise BadRequestError(f"Деление на ноль не возможно ({expression})")
-            result_to_float = float(result)
-        except (SympifyError, ValueError, SyntaxError, UnboundLocalError):
-            raise BadRequestError(f"Некоректный ввод ({expression})")
-        except TypeError:
-            try:
-                if str(result) == "zoo":
-                    raise BadRequestError(f"Деление на ноль не возможно ({expression})")
-            except UnboundLocalError:
-                raise BadRequestError(f"Некоректный ввод ({expression})")
-            raise BadRequestError(f"Некоректный ввод ({expression})")
-        else:
-            return result_to_float
+            if result in [nan, zoo]:
+                raise BadRequestError(f"Деление на ноль невозможно ({expression})")
+            return float(result)
+        except (SympifyError, ValueError, TypeError, SyntaxError):
+            raise BadRequestError(f"Некорректный ввод ({expression})")
